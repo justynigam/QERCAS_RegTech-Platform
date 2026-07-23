@@ -63,7 +63,7 @@ const SummaryCards = () => {
 
     // Use useEffect to fetch the data when the component loads
     useEffect(() => {
-        axios.get('http://127.0.0.1:8000/api/summary/')
+        axios.get('/api/summary/')
             .then(response => {
                 setSummaryData(response.data);
             })
@@ -134,7 +134,7 @@ const Charts = () => {
 const TransactionTable = ({ onRowClick }) => {
     const [transactions, setTransactions] = useState([]);
     useEffect(() => {
-        axios.get('http://127.0.0.1:8000/api/transactions/')
+        axios.get('/api/transactions/')
             .then(response => setTransactions(response.data))
             .catch(error => console.error("Error fetching transactions:", error));
     }, []);
@@ -181,7 +181,7 @@ const RegulatorySearch = () => {
         setIsLoading(true);
         setAnswer('');
         try {
-            const response = await axios.post('http://127.0.0.1:8000/nlp/search/', { question });
+            const response = await axios.post('/nlp/search/', { question });
             setAnswer(response.data.answer);
         } catch (error) {
             console.error("Error fetching answer:", error);
@@ -224,7 +224,7 @@ const DetailsModal = ({ transaction, explanation, onClose }) => {
     if (!transaction) return null;
 
     const isExplanationValid = explanation && !explanation.error && Array.isArray(explanation.shap_values);
-    const gnnGraphUrl = `http://127.0.0.1:8000/gnn/graph/${transaction.id}/`;
+    const gnnGraphUrl = `/gnn/graph/${transaction.id}/`;
     
     // Safe calculation of output value
     const calculateOutputValue = () => {
@@ -312,7 +312,7 @@ export default function App() {
         setExplanation(null); // Clear previous explanation
 
         if (tx.status === 'HIGH_RISK' || tx.status === 'BLOCKED') {
-            axios.get(`http://127.0.0.1:8000/api/transactions/${tx.id}/explanation/`)
+            axios.get(`/api/transactions/${tx.id}/explanation/`)
                 .then(response => {
                     setExplanation(response.data);
                 })
