@@ -1,0 +1,55 @@
+# Docker Compose for QERCAS RegTech Platform
+
+version: '3.8'
+
+services:
+  # Redis Broker Service
+  redis:
+    image: redis:6-alpine
+    container_name: qercas_redis
+    ports:
+      - "6379:6379"
+
+  # Django Backend API Service
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    container_name: qercas_backend
+    command: gunicorn qercas_project.wsgi:application --bind 0.0.0.0:8000
+    volumes:
+      - ./backend/qercas_project:/app
+    ports:
+      - "8000:8000"
+    environment:
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - DEBUG=True
+    depends_on:
+      - redis
+
+  # Celery Worker Service
+  celery_worker:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    container_name: qercas_celery
+    command: celery -A qercas_project worker -l info
+    volumes:
+      - ./backend/qercas_project:/app
+    environment:
+      - CELERY_BROKER_URL=redis://redis:6379/0
+    depends_on:
+      - redis
+      - backend
+
+  # Live Stream Simulator Service
+  simulator:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    container_name: qercas_simulator
+    command: python stream_simulator.py
+    environment:
+      - API_ENDPOINT=http://backend:8000/api/transactions/
+    depends_on:
+      - backend
