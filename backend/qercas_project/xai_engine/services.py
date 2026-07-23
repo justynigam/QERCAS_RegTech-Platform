@@ -120,9 +120,23 @@ class XAIService:
                 }
             else:  # Other model types
                 shap_values = XAIService._explainer.shap_values([feature_values])
+                
+                # Handle expected_value being a scalar, array, or list
+                base_val = XAIService._explainer.expected_value
+                if isinstance(base_val, (np.ndarray, list)):
+                    base_val = float(base_val[1]) if len(base_val) > 1 else float(base_val[0])
+                else:
+                    base_val = float(base_val)
+
+                # Handle multi-class / 2D SHAP output (e.g. binary classification outputting list of arrays)
+                if isinstance(shap_values, list):
+                    s_vals = shap_values[1][0] if len(shap_values) > 1 else shap_values[0][0]
+                else:
+                    s_vals = shap_values[0]
+
                 return {
-                    "base_value": float(XAIService._explainer.expected_value),
-                    "shap_values": shap_values[0].tolist(),
+                    "base_value": base_val,
+                    "shap_values": s_vals.tolist() if hasattr(s_vals, 'tolist') else [float(v) for v in s_vals],
                     "feature_names": ['amount', 'day_of_week', 'hour_of_day', 'is_crypto'],
                     "feature_values": feature_values,
                 }

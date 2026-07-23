@@ -6,6 +6,8 @@ from celery.schedules import crontab
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'qercas_project.settings')
 
 app = Celery('qercas_project')
+app.conf.broker_transport_options = {'protocol_version': 2}
+app.conf.redis_backend_transport_options = {'protocol_version': 2}
 
 # Using a string here means the worker doesn't have to serialize
 # the configuration object to child processes.
@@ -24,6 +26,7 @@ if os.name == 'nt':
         result_serializer='json',
         timezone='UTC',
         enable_utc=True,
+        broker_transport_options={'protocol_version': 2},
     )
 
 # Optional: Add periodic tasks
